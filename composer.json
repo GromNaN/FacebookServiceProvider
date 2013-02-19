@@ -1,0 +1,25 @@
+{
+    "name": "grom/facebook-service-provider",
+    "description": "Facebook API and connect integration into your Silex applications",
+    "authors": [
+        {
+            "name": "Jérôme Tamarelle",
+            "email": "jerome@tamarelle.net"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "friendsofsymfony/facebook-bundle": "1.1.x-dev",
+        "silex/silex": "1.0.x-dev"
+    },
+    "require-dev": {
+        "phpspec/phpspec2": "1.0.*"
+    },
+    "target-dir": "Silex/Provider",
+    "autoload": {
+        "psr-0": { "Silex\\Provider": "" }
+    },
+    "config": {
+        "bin-dir": "bin"
+    }
+}
