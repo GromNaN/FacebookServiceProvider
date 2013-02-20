@@ -9,11 +9,8 @@
     ],
     "minimum-stability": "dev",
     "require": {
-        "friendsofsymfony/facebook-bundle": "1.1.x-dev",
-        "silex/silex": "1.0.x-dev"
-    },
-    "require-dev": {
-        "phpspec/phpspec2": "1.0.*"
+        "friendsofsymfony/facebook-bundle": "1.1.*",
+        "silex/silex": "1.0.*"
     },
     "target-dir": "Silex/Provider",
     "autoload": {
