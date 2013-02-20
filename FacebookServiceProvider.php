@@ -38,8 +38,7 @@ class FacebookServiceProvider implements ServiceProviderInterface
         $app['security.authentication_listener.factory.facebook'] = $app->protect(function ($name, $options) use ($app, $that) {
 
             $app['security.authentication.success_handler.facebook'] = $app['security.authentication.success_handler._proto']('facebook', $options);
-            $app['security.authentication.failure_handler.facebook'] = $app['security.authentication.failure_handler._proto']('
-                facebook', $options);
+            $app['security.authentication.failure_handler.facebook'] = $app['security.authentication.failure_handler._proto']('facebook', $options);
 
             $that->addFakeRoute(
                 'match',
