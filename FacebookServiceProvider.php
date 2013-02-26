@@ -35,52 +35,77 @@ class FacebookServiceProvider implements ServiceProviderInterface
             );
         });
 
-        $app['security.authentication_listener.factory.facebook'] = $app->protect(function ($name, $options) use ($app, $that) {
+        $app['security.authentication_listener.factory.facebook'] = $app->protect(function($name, $options) use ($app) {
+            $entryPoint = isset($options['entry_point']) ? $options['entry_point'] : true;
+            if ($entryPoint && !isset($app['security.entry_point.'.$name.'.facebook'])) {
+                $app['security.entry_point.'.$name.'.facebook'] = $app['security.entry_point.facebook._proto']($name, $options);
+            }
 
-            $app['security.authentication.success_handler.facebook'] = $app['security.authentication.success_handler._proto']('facebook', $options);
-            $app['security.authentication.failure_handler.facebook'] = $app['security.authentication.failure_handler._proto']('facebook', $options);
+            if (!isset($app['security.authentication_listener.'.$name.'.facebook'])) {
+                $app['security.authentication_listener.'.$name.'.facebook'] = $app['security.authentication_listener.facebook._proto']($name, $options);
+            }
 
-            $that->addFakeRoute(
-                'match',
-                $tmp = isset($options['check_path']) ? $options['check_path'] : '/login_check',
-                str_replace('/', '_', ltrim($tmp, '/'))
+            if (!isset($app['security.authentication_provider.'.$name.'.facebook'])) {
+                $app['security.authentication_provider.'.$name.'.facebook'] = $app['security.authentication_provider.facebook._proto']($name);
+            }
+
+            return array(
+                'security.authentication_provider.'.$name.'.facebook',
+                'security.authentication_listener.'.$name.'.facebook',
+                $entryPoint ? 'security.entry_point.'.$name.'.facebook' : null,
+                'facebook'
             );
+        });
 
-            $app['security.entry_point.'.$name.'.facebook'] = $app->share(function () use ($app, $options) {
+        $app['security.entry_point.facebook._proto'] = $app->protect(function ($name, array $options) use ($app) {
+            return $app->share(function () use ($app, $options) {
                 return new FacebookAuthenticationEntryPoint($app['facebook'], $options, $app['facebook.permissions']);
             });
+        });
 
-            $app['security.authentication_provider.'.$name.'.facebook'] = $app->share(function () use ($app, $name, $options) {
-                return new FacebookProvider(
-                    'facebook',
-                    $app['facebook'],
-                    $app['security.user_provider.' . $name],
-                    $app['security.user_checker'],
-                    isset($options['createIfNotExists']) ? $options['createIfNotExists'] : false
+        $app['security.authentication_listener.facebook._proto'] = $app->protect(function ($name, $options) use ($app, $that) {
+            return $app->share(function () use ($app, $name, $options, $that) {
+                $that->addFakeRoute(
+                    'match',
+                    $tmp = isset($options['check_path']) ? $options['check_path'] : '/login_check',
+                    str_replace('/', '_', ltrim($tmp, '/'))
                 );
-            });
 
-            $app['security.authentication_listener.'.$name.'.facebook'] = $app->share(function () use ($app, $options) {
-                return new FacebookListener(
+                $class = isset($options['listener_class']) ? $options['listener_class'] : 'FOS\\FacebookBundle\\Security\\Firewall\\FacebookListener';
+
+                if (!isset($app['security.authentication.success_handler.'.$name])) {
+                    $app['security.authentication.success_handler.'.$name] = $app['security.authentication.success_handler._proto']($name, $options);
+                }
+
+                if (!isset($app['security.authentication.failure_handler.'.$name])) {
+                    $app['security.authentication.failure_handler.'.$name] = $app['security.authentication.failure_handler._proto']($name, $options);
+                }
+
+                return new $class(
                     $app['security'],
                     $app['security.authentication_manager'],
                     $app['security.session_strategy'],
                     $app['security.http_utils'],
                     'facebook',
-                    $app['security.authentication.success_handler.facebook'],
-                    $app['security.authentication.failure_handler.facebook'],
+                    $app['security.authentication.success_handler.'.$name],
+                    $app['security.authentication.failure_handler.'.$name],
                     $options,
                     $app['logger'],
                     $app['dispatcher']
                 );
             });
+        });
 
-            return array(
-                'security.authentication_provider.'.$name.'.facebook',
-                'security.authentication_listener.'.$name.'.facebook',
-                'security.entry_point.'.$name.'.facebook',
-                'pre_auth',
-            );
+        $app['security.authentication_provider.facebook._proto'] = $app->protect(function ($name) use ($app) {
+            return $app->share(function () use ($app, $name) {
+                return new FacebookProvider(
+                    $name,
+                    $app['facebook'],
+                    $app['security.user_provider.'.$name.'.facebook'],
+                    $app['security.user_checker'],
+                    true
+                );
+            });
         });
     }
 
