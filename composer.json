@@ -7,10 +7,13 @@
             "email": "jerome@tamarelle.net"
         }
     ],
-    "minimum-stability": "dev",
+    "minimum-stability": "RC",
     "require": {
         "friendsofsymfony/facebook-bundle": "1.1.*",
         "silex/silex": "1.0.*"
+    },
+    "require-dev": {
+        "symfony/browser-kit": "~2.1.0"
     },
     "target-dir": "Silex/Provider",
     "autoload": {

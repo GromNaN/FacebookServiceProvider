@@ -9,6 +9,7 @@ use FOS\FacebookBundle\Security\Authentication\Provider\FacebookProvider;
 use FOS\FacebookBundle\Security\Authentication\Token\FacebookUserToken;
 use FOS\FacebookBundle\Security\EntryPoint\FacebookAuthenticationEntryPoint;
 use FOS\FacebookBundle\Security\Firewall\FacebookListener;
+use FOS\FacebookBundle\Security\User\UserManagerInterface;
 
 /**
  * @author Jérôme TAMARELLE <jerome@tamarelle.net>
@@ -37,6 +38,8 @@ class FacebookServiceProvider implements ServiceProviderInterface
 
         $app['security.authentication_listener.factory.facebook'] = $app->protect(function($name, $options) use ($app) {
             $entryPoint = isset($options['entry_point']) ? $options['entry_point'] : true;
+            $options['redirect_to_facebook_login'] = !isset($options['login_path']);
+
             if ($entryPoint && !isset($app['security.entry_point.'.$name.'.facebook'])) {
                 $app['security.entry_point.'.$name.'.facebook'] = $app['security.entry_point.facebook._proto']($name, $options);
             }
@@ -53,7 +56,7 @@ class FacebookServiceProvider implements ServiceProviderInterface
                 'security.authentication_provider.'.$name.'.facebook',
                 'security.authentication_listener.'.$name.'.facebook',
                 $entryPoint ? 'security.entry_point.'.$name.'.facebook' : null,
-                'facebook'
+                'http' // listener position
             );
         });
 
@@ -66,7 +69,7 @@ class FacebookServiceProvider implements ServiceProviderInterface
         $app['security.authentication_listener.facebook._proto'] = $app->protect(function ($name, $options) use ($app, $that) {
             return $app->share(function () use ($app, $name, $options, $that) {
                 $that->addFakeRoute(
-                    'match',
+                    'get',
                     $tmp = isset($options['check_path']) ? $options['check_path'] : '/login_check',
                     str_replace('/', '_', ltrim($tmp, '/'))
                 );
@@ -86,7 +89,7 @@ class FacebookServiceProvider implements ServiceProviderInterface
                     $app['security.authentication_manager'],
                     $app['security.session_strategy'],
                     $app['security.http_utils'],
-                    'facebook',
+                    $name,
                     $app['security.authentication.success_handler.'.$name],
                     $app['security.authentication.failure_handler.'.$name],
                     $options,
@@ -101,9 +104,9 @@ class FacebookServiceProvider implements ServiceProviderInterface
                 return new FacebookProvider(
                     $name,
                     $app['facebook'],
-                    $app['security.user_provider.'.$name.'.facebook'],
+                    $app['security.user_provider.'.$name],
                     $app['security.user_checker'],
-                    true
+                    $app['security.user_provider.'.$name] instanceof UserManagerInterface
                 );
             });
         });
@@ -111,10 +114,6 @@ class FacebookServiceProvider implements ServiceProviderInterface
 
     public function boot(Application $app)
     {
-        if (!isset($app['facebook.config'])) {
-            throw new \RuntimeException('"facebook.config" not defined');
-        }
-
         foreach ($this->fakeRoutes as $route) {
             list($method, $pattern, $name) = $route;
 
