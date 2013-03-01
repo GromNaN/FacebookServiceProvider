@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of the FacebookServiceProvider.
+ *
+ * (c) Jérôme TAMARELLE <jerome@tamarelle.net>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Silex\Provider;
 
 use Silex\Application;
@@ -12,6 +21,9 @@ use FOS\FacebookBundle\Security\Firewall\FacebookListener;
 use FOS\FacebookBundle\Security\User\UserManagerInterface;
 
 /**
+ * Facebook Service Provider for Silex
+ * Enable Facebook Connect and API
+ *
  * @author Jérôme TAMARELLE <jerome@tamarelle.net>
  */
 class FacebookServiceProvider implements ServiceProviderInterface
