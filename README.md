@@ -47,14 +47,12 @@ To enable Facebook authentication, just add a "facebook" option to your firewall
 ```php
 $app['security.firewalls'] = array(
     'private' => array(
-        'pattern' => '^/private/',
+        'pattern' => '^/',
         'facebook' => array(
-            'redirect_to_facebook_login' => true,
-            'check_path' => '/private/login_check',
+            'check_path' => '/login_check',
+            'login_path' => '/login',
         ),
         // Users are identified by their Facebook UID
-        // Add yours for test
-        // https://developers.facebook.com/tools/explorer/
         'users' => array(
             // This is Mark Zuckerberg
             '4' => array('ROLE_USER', null),
@@ -63,34 +61,23 @@ $app['security.firewalls'] = array(
 );
 ```
 
+If you don't set a `login_path`, the user is redirected to Facebook.
+
+Developers of embedded Facebook Applications may define `app_url`,
+`server_url` and `display` options.
+
 ## Defining a custom User Provider and automatic user creation##
 
 The UserProvider used to find Facebook user is similar to the
 [username/password UserProvider](http://silex.sensiolabs.org/doc/providers/security.html#defining-a-custom-user-provider). The differences are that users are identified by their Facebook UID
 instead of their username.
 
-If the UID is not found, you can create the user automatically with
-the option `createIfNotExists`.
+If the Facebook UID is not found in your database, the user provider
+can create the user automatically. You simply have to implements the
+method `FOS\FacebookBundle\Security\User\UserProviderInterface::createUserFromUid`
 
 ```php
-$app['security.firewalls'] = array(
-    'default' => array(
-        'facebook' => array(
-            'createIfNotExists' => true,
-        ),
-        'users' => $app->share(function () use ($app) {
-            return new FacebookUserProvider($app['db']);
-        }),
-    ),
-);
-```
-
-The custom `UserProvider` must implement
-`FOS\FacebookBundle\Security\User\UserProviderInterface` to handle
-user creation from UID.
-
-```php
-use FOS\FacebookBundle\Security\User\UserProviderInterface as FacebookUserProviderInterface;
+use FOS\FacebookBundle\Security\User\UserManagerInterface as FacebookUserProviderInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\User;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
@@ -141,6 +128,20 @@ class FacebookUserProvider implements FacebookUserProviderInterface
         return $class === 'Symfony\Component\Security\Core\User\User';
     }
 }
+```
+
+Now use your custom user provider.
+
+```php
+$app['security.firewalls'] = array(
+    'default' => array(
+        'facebook' => array(
+        ),
+        'users' => $app->share(function () use ($app) {
+            return new FacebookUserProvider($app['db']);
+        }),
+    ),
+);
 ```
 
 ## Facebook Graph API ##
