@@ -102,7 +102,7 @@ class FacebookServiceProviderTest extends WebTestCase
                     'check_path' => '/facebook_connect',
                     'login_path' => '/login',
                 ),
-                'users' => \Pimple::share(function () {
+                'users' => $this->app->share(function () {
                     return new InMemoryFacebookUserProvider();
                 }),
             ),
