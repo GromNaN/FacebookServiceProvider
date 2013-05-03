@@ -24,6 +24,8 @@ Using composer :
 
 ## Registering ##
 
+First, you must register the [SecurityServiceProvider](http://silex.sensiolabs.org/doc/providers/security.html#registering).
+
 ```php
 use Silex\Provider\FacebookServiceProvider;
 
